@@ -18,10 +18,10 @@ import (
 const (
 	sizeofV8 = int(unsafe.Offsetof(unix.Taskstats{}.Thrashing_count))
 	sizeofV9 = int(unsafe.Offsetof(unix.Taskstats{}.Ac_btime64))
-	// Current version.
-	sizeofV10 = int(unsafe.Sizeof(unix.Taskstats{}))
+	sizeofV10 = int(unsafe.Offsetof(unix.Taskstats{}.Compact_count))
 
-	// TODO(mdlayher): sizeofV11 for Linux 5.17.
+	// golang.org/x/sys v0.0.0-20220928140112-f11e5e49a4ec
+	sizeofV11 = int(unsafe.Sizeof(unix.Taskstats{}))
 
 	sizeofCGroupStats = int(unsafe.Sizeof(unix.CGroupStats{}))
 )
@@ -206,10 +206,10 @@ func parseMessage(m genetlink.Message, typeAggr uint16) (*Stats, error) {
 			// size expected by this package, so we don't blindly cast the
 			// byte slice into a structure of the wrong size.
 			switch l := len(na.Data); l {
-			case sizeofV8, sizeofV9, sizeofV10:
+			case sizeofV8, sizeofV9, sizeofV10, sizeofV11:
 				// OK, supported.
 			default:
-				return nil, fmt.Errorf("unexpected taskstats structure size: %d: does not match taskstats v8, v9, v10", l)
+				return nil, fmt.Errorf("unexpected taskstats structure size: %d: does not match taskstats v8(%d), v9(%d), v10(%d) v11(%d)", l, sizeofV8, sizeofV9, sizeofV10, sizeofV11)
 			}
 
 			return parseStats(*(*unix.Taskstats)(unsafe.Pointer(&na.Data[0])))
